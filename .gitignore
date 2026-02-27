@@ -1,0 +1,20 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+venv.lib/
+
+# Zip files
+*.zip
+
+# Editor files
+*.swp
+.vscode/minikube-darwin-arm64*
+
+
+venv/
+minikube-darwin-arm64
+minikube-darwin-arm64 copy
+*.zip

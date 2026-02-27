@@ -1,0 +1,155 @@
+This project shows how to set up and check the health of a Kubernetes based system that runs multiple small applications (microservices). It includes the configuration files needed to deploy everything, along with a reusable Python script that checks whether the system is working properly.
+
+In simple terms, the goal of this project is to show that I can:
+
+Look inside a Kubernetes cluster and understand what is running
+
+Check Pods, Deployments, and Services
+
+Identify applications that are not starting, not responding, or not working correctly
+
+Also,Test whether services are reachable through HTTP (This was Optional)
+
+Work confidently with Kubernetes configuration files and troubleshoot issues
+
+
+
+Project Structure
+
+The project folder contains:
+
+k8s_health_check.py – A Python script that checks the health of the cluster
+
+whereami.yaml – Configuration for deploying the Whereami application
+
+prom.yaml – Configuration for deploying Prometheus
+
+ingress.yaml – Configuration for routing traffic using NGINX Ingress
+
+README.md – Project documentation
+
+
+
+What Was Deployed in Kubernetes
+1. For Whereami Application
+
+Deployment with 6 replicas (6 running copies of the app)
+
+ClusterIP Service on port 80
+
+Ingress configured to route traffic to /whereami
+
+In some cases, the Whereami Pods may stay in a Pending state. This usually happens if the local Kubernetes cluster (such as Minikube) does not have enough CPU or memory allocated. Increasing the available resources fixes this issue.
+
+
+2. Redis (Database Component)
+
+Redis Master Deployment
+
+Redis Replica Deployment
+
+Separate ClusterIP Services for both
+
+In environments with limited resources, the Redis replica Pods may fail readiness checks. This means they start but are not fully ready to serve traffic.
+
+
+3. Prometheus (Monitoring Tool)
+
+Deployment with 1 replica
+
+ClusterIP Service on port 8080
+
+Custom ConfigMap for scrape configuration
+
+Ingress route available at /prom
+
+Prometheus was used to monitor and collect metrics from the applications running in the cluster.
+
+
+4. Ingress Controller
+
+The NGINX Ingress Controller was enabled using the Minikube addon.
+
+It handles incoming HTTP requests and routes them to the correct application based on the URL path.
+
+
+
+Kubernetes Health Check Script:
+
+The k8s_health_check.py script is a reusable Python tool that connects to the Kubernetes cluster and checks:
+
+Pod status (Running, Pending, CrashLoopBackOff, etc.)
+
+Deployment replica availability
+
+Service configuration and exposed ports
+
+(Optional) HTTP endpoint checks (for example, testing Prometheus or application URLs)
+
+The script used the kubeconfig file to authenticate and can be reused with different Kubernetes clusters.
+
+
+
+Requirements:
+
+Python
+
+Kubernetes Python client
+
+Requests library
+
+
+
+It is recommended to use a virtual environment:
+
+python3 -m venv venv
+source venv/bin/activate
+pip install kubernetes requests
+How to Run the Project.
+
+
+
+First, apply the Kubernetes configuration files:
+
+kubectl apply -f ingress.yaml
+kubectl apply -f prom.yaml
+kubectl apply -f whereami.yaml
+
+
+Then run the health check script:
+
+python3 k8s_health_check.py
+
+
+
+The script will display:
+
+Pod states (Running, Pending, CrashLoopBackOff)
+
+Deployment replica status
+
+Service port details
+
+Whether HTTP endpoints are reachable
+
+
+
+What Was Observed in Testing (Minikube Environment)
+
+From testing in a local Minikube cluster:
+
+The frontend and redis master Pods were healthy.
+
+The redis-replica Pods showed containers not fully ready.
+
+The whereami Pods were in a Pending state, most likely due to insufficient memory allocation.
+
+The Prometheus deployment was running successfully.
+
+
+To test HTTP endpoints locally, port forwarding is required:
+
+kubectl port-forward deployment/prometheus-deployment 9090:9090 -n monitoring
+kubectl port-forward svc/whereami 8080:80
+
+This allows access to the services through localhost for validation.
